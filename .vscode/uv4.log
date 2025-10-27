@@ -1,0 +1,16 @@
+*** Using Compiler 'V5.06 update 5 (build 528)', folder: 'D:\Keil5\ARM\ARMCC\Bin'
+Build target 'Target 1'
+compiling stm32f4xx_it.c...
+"no source": Error:  #5: cannot open source input file "..\..\STM32F4å›ºä»¶åº“\STM32F4xx_DSP_StdPeriph_Lib_V1.9.0\Project\STM32F4xx_StdPeriph_Templates\stm32f4xx_it.c": No such file or directory
+..\..\STM32F4¹Ì¼þ¿â\STM32F4xx_DSP_StdPeriph_Lib_V1.9.0\Project\STM32F4xx_StdPeriph_Templates\stm32f4xx_it.c: 0 warnings, 1 error
+compiling Madgwick.c...
+Hardware\Madgwick.c(80): error:  #142: expression must have pointer-to-object type
+      m_x -= mag_bias[0];
+Hardware\Madgwick.c(81): error:  #142: expression must have pointer-to-object type
+      m_x -= mag_bias[1];
+Hardware\Madgwick.c(82): error:  #142: expression must have pointer-to-object type
+      m_x -= mag_bias[2];
+Hardware\Madgwick.c: 0 warnings, 3 errors
+".\Objects\Project.elf" - 3 Error(s), 0 Warning(s).
+Target not created.
+Build Time Elapsed:  00:00:01
