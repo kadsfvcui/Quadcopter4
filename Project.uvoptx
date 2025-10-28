@@ -157,7 +157,7 @@
           <Type>0</Type>
           <LineNumber>98</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134219198</Address>
+          <Address>134219146</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -173,7 +173,7 @@
           <Type>0</Type>
           <LineNumber>110</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134219256</Address>
+          <Address>134219204</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -189,7 +189,7 @@
           <Type>0</Type>
           <LineNumber>64</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134227578</Address>
+          <Address>134226602</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -203,25 +203,25 @@
         <Bp>
           <Number>3</Number>
           <Type>0</Type>
-          <LineNumber>39</LineNumber>
+          <LineNumber>14</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134220314</Address>
+          <Address>134226862</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>D:\鍥涜酱 III\Project\Madgwick AHRS\Hardware\Madgwick.c</Filename>
+          <Filename>D:\鍥涜酱 III\Project\Madgwick AHRS\main.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\Project\Hardware/Madgwick.c\39</Expression>
+          <Expression>\\Project\main.c\14</Expression>
         </Bp>
         <Bp>
           <Number>4</Number>
           <Type>0</Type>
-          <LineNumber>82</LineNumber>
+          <LineNumber>79</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134223814</Address>
+          <Address>134222874</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -230,7 +230,7 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>D:\鍥涜酱 III\Project\Madgwick AHRS\User\Service.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\Project\User/Service.c\82</Expression>
+          <Expression>\\Project\User/Service.c\79</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -253,6 +253,16 @@
           <count>3</count>
           <WinNumber>1</WinNumber>
           <ItemText>mag_data,0x0A</ItemText>
+        </Ww>
+        <Ww>
+          <count>4</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>a_x</ItemText>
+        </Ww>
+        <Ww>
+          <count>5</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>a_z</ItemText>
         </Ww>
       </WatchWindow1>
       <Tracepoint>

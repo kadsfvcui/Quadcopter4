@@ -3,7 +3,6 @@
 uint16_t PPM[8];
 uint8_t RxData;
 int8_t data[100];
-int16_t Mag_OffsetX, Mag_OffsetY, Mag_OffsetZ;
 
 MPU6050_AccDataTypeDef Acc_Data;
 MPU6050_GyroDataTypeDef Gyro_Data;
@@ -73,53 +72,47 @@ void test(void)
 
 void Madgwick_Test(void)
 {
-	static uint8_t cnt = 0;
-
     MPU6050_GetAccData(&Acc_Data);
 	MPU6050_GetGyroData(&Gyro_Data);
 	HMC5883L_GetData(&HMC_Data);
 
 	MadgwickUpdate(&Acc_Data, &Gyro_Data, &HMC_Data, &q);
-	++cnt; 
 
-	if(cnt == 1){
-		cnt = 0;
 
-//		Quaternion2Euler(&q, &roll, &pitch, &yaw);
-	
-//	    printf("roll: %.2f, pitch: %.2f, yaw: %.2f\n", roll, pitch, yaw);
-		
-//		int16_t roll_int = roll * 100 * 180.0f / 3.1415926f;
-//		int16_t pitch_int = pitch * 100 * 180.0f / 3.1415926f;
-//		int16_t yaw_int = yaw * 100 * 180.0f / 3.1415926f;
+//	Quaternion2Euler(&q, &roll, &pitch, &yaw);
 
-//		data[0] = (roll_int & 0xff);
-//		data[1] = (roll_int >> 8);
-//		data[2] = (pitch_int & 0xff);
-//		data[3] = (pitch_int >> 8);
-//		data[4] = (yaw_int & 0xff);
-//		data[5] = (yaw_int >> 8);
-//		data[6] = 0;
+//  printf("roll: %.2f, pitch: %.2f, yaw: %.2f\n", roll, pitch, yaw);
 
-		int16_t q1_int = q.q1 * 10000;
-		int16_t q2_int = q.q2 * 10000;
-		int16_t q3_int = q.q3 * 10000;
-		int16_t q4_int = q.q4 * 10000;
+//	int16_t roll_int = roll * 100 * 180.0f / 3.1415926f;
+//	int16_t pitch_int = pitch * 100 * 180.0f / 3.1415926f;
+//	int16_t yaw_int = yaw * 100 * 180.0f / 3.1415926f;
 
-		data[0] = (q1_int & 0xff);
-		data[1] = (q1_int >> 8);
-		data[2] = (q2_int & 0xff);
-		data[3] = (q2_int >> 8);
-		data[4] = (q3_int & 0xff);
-		data[5] = (q3_int >> 8);
-		data[6] = (q4_int & 0xff);
-		data[7] = (q4_int >> 8);
-		data[8] = 0;
+//	data[0] = (roll_int & 0xff);
+//	data[1] = (roll_int >> 8);
+//	data[2] = (pitch_int & 0xff);
+//	data[3] = (pitch_int >> 8);
+//	data[4] = (yaw_int & 0xff);
+//	data[5] = (yaw_int >> 8);
+//	data[6] = 0;
 
-		Ano_SendData(data, 9, 0x04);
+	int16_t q1_int = q.q1 * 10000;
+	int16_t q2_int = q.q2 * 10000;
+	int16_t q3_int = q.q3 * 10000;
+	int16_t q4_int = q.q4 * 10000;
+
+	data[0] = (q1_int & 0xff);
+	data[1] = (q1_int >> 8);
+	data[2] = (q2_int & 0xff);
+	data[3] = (q2_int >> 8);
+	data[4] = (q3_int & 0xff);
+	data[5] = (q3_int >> 8);
+	data[6] = (q4_int & 0xff);
+	data[7] = (q4_int >> 8);
+	data[8] = 0;
+
+	Ano_SendData(data, 9, 0x04);
 
 //		Ano_SendData(data, 7, 0x03);
-	}
 	
 	Delay_ms(10);
 }

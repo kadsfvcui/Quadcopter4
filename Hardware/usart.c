@@ -108,7 +108,7 @@ void Ano_SendData(int8_t *data, uint8_t len, uint8_t id)
     MyData[len + 5] = add_check;
     
     USART_SendArray(MyData, len + 6);
-}
+} 
 
 void USART_SendString(char *str)
 {
