@@ -1,0 +1,189 @@
+#include "Madgwick.h"
+
+#define DeltaT 0.01f
+#define GYRO_LSB 65.5f
+#define DEG2RAD    (3.14159265359f/180.0f)
+#define beta_max 5.0f
+#define beta_min 0.1f
+#define zeta 0.05f
+
+const float mag_kx = 0.98320f, mag_ky = 1.05344f, mag_kz = 0.96968;
+const float mag_bx = 34.0f, mag_by = -51.0f, mag_bz = -105.0f;
+
+// mag_bias correction from hard and soft iron error
+//float mag_harderr[3] = {134.6028, -246.5224, 41.6337};
+//float mag_softerr[3][3] = {
+//    { 1.0000, -0.00015,  0.00031},
+//    { -0.00015,  1.0000, -0.00003},
+//    {0.00031,  -0.00003,  1.0000}
+//};
+
+/**
+ * @brief Madgwick姿态融合算法更新函数
+ * 
+ * @param accdata 加速度计数据，包含X、Y、Z三轴加速度
+ * @param gyrodata 陀螺仪数据，包含X、Y、Z三轴角速度
+ * @param magdata 磁力计数据，包含X、Y、Z三轴磁场强度
+ * @param Q 四元数输出，包含q1、q2、q3、q4四个分量
+ * @param b_x 参考磁场在X方向的分量
+ * @param b_z 参考磁场在Z方向的分量
+ * 
+ * @note Madgwick算法实现步骤：
+ *       1. 归一化加速度计和磁力计数据
+ *       2. 陀螺仪数据单位转换（度/秒 转 弧度/秒）
+ *       3. 计算目标函数
+ *       4. 计算雅可比矩阵
+ *       5. 计算并归一化梯度
+ *       6. 计算陀螺仪四元数微分
+ *       7. 更新并归一化四元数
+ *       8. 计算下一时刻的参考磁场
+ */
+void MadgwickUpdate(MPU6050_DataTypeDef *imudata, HMC5883L_DataTypeDef *magdata, SEQTypeDef *Q, float dt)
+{
+    static float b_x = 1.0f, b_z = 0.0f;
+    static float wBias_x = 0.0f, wBias_y = 0.0f, wBias_z = 0.0f;
+    static float beta = 0.0f;
+    float q1 = Q->q1, q2 = Q->q2, q3 = Q->q3, q4 = Q->q4;
+    float a_x = imudata->Acc_X, a_y = imudata->Acc_Y, a_z = imudata->Acc_Z;
+    float w_x = imudata->Gyro_X, w_y = imudata->Gyro_Y, w_z = imudata->Gyro_Z;
+    float m_x = magdata->Mag_X, m_y = magdata->Mag_Y, m_z = magdata->Mag_Z;
+    float norm;
+
+	// normalise acc data
+    norm = sqrt(a_x * a_x + a_y * a_y + a_z * a_z);
+	a_x /= norm;
+	a_y /= norm;
+	a_z /= norm;
+
+    // remove mag error
+    m_x = (m_x - mag_bx) * mag_kx;
+    m_y = (m_y - mag_by) * mag_ky;
+    m_z = (m_z - mag_bz) * mag_kz;
+
+	// normalise mag data
+	norm = sqrt(m_x * m_x + m_y * m_y + m_z * m_z);
+	m_x /= norm;
+	m_y /= norm;
+	m_z /= norm;
+
+    // gyro °/s to rad/s
+    w_x /= GYRO_LSB;
+    w_y /= GYRO_LSB;
+    w_z /= GYRO_LSB;
+    w_x *= DEG2RAD;
+    w_y *= DEG2RAD;
+    w_z *= DEG2RAD;
+
+
+    float n_1 = 0, n_2 = 0, n_3 = 0, n_4 = 0;
+
+    // compute the objective function
+    float f_1 = 2.0f * (q2 * q4 - q1 * q3) - a_x;
+    float f_2 = 2.0f * (q1 * q2 + q3 * q4) - a_y;
+    float f_3 = 2.0f * (0.5f - q2 * q2 - q3 * q3) - a_z;
+    float f_4 = 2.0f * b_x * (0.5f - q3 * q3 - q4 * q4) + 2.0f * b_z * (q2 * q4 - q1 * q3) - m_x;
+    float f_5 = 2.0f * b_x * (q2 * q3 - q1 * q4) + 2.0f * b_z * (q1 * q2 + q3 * q4) - m_y;
+    float f_6 = 2.0f * b_x * (q1 * q3 + q2 * q4) + 2.0f * b_z * (0.5f - q2 * q2 - q3 * q3) - m_z;
+
+    // compute the Jacobian matrix
+    float j_11 = -2.0f * q3;
+    float j_12 = 2.0f * q4;
+    float j_13 = -2.0f * q1;
+    float j_14 = 2.0f * q2;
+    float j_21 = 2.0f * q2;
+    float j_22 = 2.0f * q1;
+    float j_23 = 2.0f * q4;
+    float j_24 = 2.0f * q3;
+    float j_32 = -4.0f * q2;
+    float j_33 = -4.0f * q3;
+    float j_41 = -2.0f * b_z * q3;
+    float j_42 = 2.0f * b_z * q4;
+    float j_43 = -2.0f * b_z * q1 - 4.0f * b_x * q3;
+    float j_44 = 2.0f * b_z * q2 - 4.0f * b_x * q4;
+    float j_51 = -2.0f * b_x * q4 + 2.0f * b_z * q2;
+    float j_52 = 2.0f * b_x * q3 + 2.0f * b_z * q1;
+    float j_53 = 2.0f * b_x * q2 + 2.0f * b_z * q4;
+    float j_54 = -2.0f * b_x * q1 + 2.0f * b_z * q3;
+    float j_61 = 2.0f * b_x * q3;
+    float j_62 = 2.0f * b_x * q4 - 4.0f * b_z * q2;
+    float j_63 = 2.0f * b_x * q1 - 4.0f * b_z * q3;
+    float j_64 = 2.0f * b_x * q2;
+
+    // gradient from acc and mag
+    n_1 = (j_11 * f_1) + (j_21 * f_2) + (j_41 * f_4) + (j_51 * f_5) + (j_61 * f_6);
+    n_2 = (j_12 * f_1) + (j_22 * f_2) + (j_32 * f_3) + (j_42 * f_4) + (j_52 * f_5) + (j_62 * f_6);
+    n_3 = (j_13 * f_1) + (j_23 * f_2) + (j_33 * f_3) + (j_43 * f_4) + (j_53 * f_5) + (j_63 * f_6);
+    n_4 = (j_14 * f_1) + (j_24 * f_2) + (j_44 * f_4) + (j_54 * f_5) + (j_64 * f_6);
+
+        
+    norm = sqrt(n_1 * n_1 + n_2 * n_2 + n_3 * n_3 + n_4 * n_4);
+    
+        // 根据运动情况动态调整beta
+    beta = norm * beta_max;
+//    if(beta > beta_max) beta = beta_max;
+    if(beta < beta_min ) beta = beta_min;
+
+//	printf("Graid:%f  beta:%f\r\n", norm, beta);
+    
+    n_1 /= norm;
+    n_2 /= norm;
+    n_3 /= norm;
+    n_4 /= norm;
+
+    // compute the dynamic bias of gyro
+    wBias_x += 2 * (-q2 * n_1 + q1 * n_2 + q4 * n_3 - q3 * n_4) * dt;
+    wBias_y += 2 * (-q3 * n_1 - q4 * n_2 + q1 * n_3 + q2 * n_4) * dt;
+    wBias_z += 2 * (-q4 * n_1 + q3 * n_2 - q2 * n_3 + q1 * n_4) * dt;
+
+    w_x -= zeta * wBias_x;
+    w_y -= zeta * wBias_y;
+    w_z -= zeta * wBias_z;
+
+    // compute the quaternion rate by gyro
+    float qDot1 = 0.5f * (-q2 * w_x - q3 * w_y - q4 * w_z);
+    float qDot2 = 0.5f * (q1 * w_x + q3 * w_z - q4 * w_y);
+    float qDot3 = 0.5f * (q1 * w_y - q2 * w_z + q4 * w_x);
+    float qDot4 = 0.5f * (q1 * w_z + q2 * w_y - q3 * w_x);
+
+    // update and normalize the quaternion
+    q1 += dt * (qDot1 - beta * n_1);
+    q2 += dt * (qDot2 - beta * n_2);
+    q3 += dt * (qDot3 - beta * n_3);
+    q4 += dt * (qDot4 - beta * n_4);
+
+    // normalise quaternion
+    norm = sqrt(q1 * q1 + q2 * q2 + q3 * q3 + q4 * q4);
+    Q->q1 = q1 / norm;
+    Q->q2 = q2 / norm;
+    Q->q3 = q3 / norm;
+    Q->q4 = q4 / norm;
+
+    //compute magnetometer flux in the earth frame for next time
+    float x = 2.0f * m_x * (q1 * q1 + q2 * q2 - 0.5f) + 2.0f * m_y * (q2 * q3 - q1 * q4) + 2.0f * m_z * (q2 * q4 + q1 * q3);
+    float y = 2.0f * m_x * (q2 * q3 + q1 * q4) + 2.0f * m_y * (q1 * q1 + q3 * q3 - 0.5f) + 2.0f * m_z * (q3 * q4 - q1 * q2);
+    float z = 2.0f * m_x * (q2 * q4 - q1 * q3) + 2.0f * m_y * (q3 * q4 + q1 * q2) + 2.0f * m_z * (q1 * q1 + q4 * q4 - 0.5f);
+	b_x = sqrt(x * x + y * y);
+	b_z = z;
+
+//    printf("mx:%f  my:%f  mz:%f\r\n", m_x, m_y, m_z);
+//    printf("bx:%f  bz:%f\r\n", b_x, b_z);
+}
+
+/**
+ * @brief 将四元数转换为欧拉角
+ * @param Q 输入的四元数结构体指针，包含q1、q2、q3、q4四个分量
+ * @param roll 输出参数，指向存储横滚角的变量指针
+ * @param pitch 输出参数，指向存储俯仰角的变量指针
+ * @param yaw 输出参数，指向存储偏航角的变量指针
+ * @note 使用标准的四元数到欧拉角转换公式
+ *       roll: 绕X轴旋转角度
+ *       pitch: 绕Y轴旋转角度
+ *       yaw: 绕Z轴旋转角度
+ *       所有角度单位为弧度
+ */
+void Quaternion2Euler(SEQTypeDef *Q, float *roll, float *pitch, float *yaw)
+{
+    *roll = atan2(2.0f * (Q->q1 * Q->q2 + Q->q3 * Q->q4), 1.0f - 2.0f * (Q->q2 * Q->q2 + Q->q3 * Q->q3));
+    *pitch = asin(2.0f * (Q->q1 * Q->q3 - Q->q4 * Q->q2));
+    *yaw = atan2(2.0f * (Q->q1 * Q->q4 + Q->q2 * Q->q3), 1.0f - 2.0f * (Q->q3 * Q->q3 + Q->q4 * Q->q4));
+}

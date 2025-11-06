@@ -1,0 +1,17 @@
+.\objects\os_core.o: core\os_core.c
+.\objects\os_core.o: .\core\ucos_ii.h
+.\objects\os_core.o: .\app\app_cfg.h
+.\objects\os_core.o: D:\Keil5\ARM\ARMCC\Bin\..\include\stdarg.h
+.\objects\os_core.o: D:\Keil5\ARM\ARMCC\Bin\..\include\stdio.h
+.\objects\os_core.o: .\app\os_cfg.h
+.\objects\os_core.o: .\ports\os_cpu.h
+.\objects\os_core.o: .\core\os_trace.h
+.\objects\os_core.o: .\SystemView\OS\os_trace_events.h
+.\objects\os_core.o: .\SystemView\segger\SEGGER_SYSVIEW.h
+.\objects\os_core.o: .\SystemView\segger\SEGGER.h
+.\objects\os_core.o: .\SystemView\cfg\Global.h
+.\objects\os_core.o: .\SystemView\segger\SEGGER_SYSVIEW_ConfDefaults.h
+.\objects\os_core.o: .\SystemView\cfg\SEGGER_SYSVIEW_Conf.h
+.\objects\os_core.o: .\SystemView\cfg\SEGGER_RTT_Conf.h
+.\objects\os_core.o: .\core\ucos_ii.h
+.\objects\os_core.o: .\SystemView\OS\Config\os_cfg_trace.h

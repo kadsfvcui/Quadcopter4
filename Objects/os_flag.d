@@ -1,0 +1,17 @@
+.\objects\os_flag.o: core\os_flag.c
+.\objects\os_flag.o: .\core\ucos_ii.h
+.\objects\os_flag.o: .\app\app_cfg.h
+.\objects\os_flag.o: D:\Keil5\ARM\ARMCC\Bin\..\include\stdarg.h
+.\objects\os_flag.o: D:\Keil5\ARM\ARMCC\Bin\..\include\stdio.h
+.\objects\os_flag.o: .\app\os_cfg.h
+.\objects\os_flag.o: .\ports\os_cpu.h
+.\objects\os_flag.o: .\core\os_trace.h
+.\objects\os_flag.o: .\SystemView\OS\os_trace_events.h
+.\objects\os_flag.o: .\SystemView\segger\SEGGER_SYSVIEW.h
+.\objects\os_flag.o: .\SystemView\segger\SEGGER.h
+.\objects\os_flag.o: .\SystemView\cfg\Global.h
+.\objects\os_flag.o: .\SystemView\segger\SEGGER_SYSVIEW_ConfDefaults.h
+.\objects\os_flag.o: .\SystemView\cfg\SEGGER_SYSVIEW_Conf.h
+.\objects\os_flag.o: .\SystemView\cfg\SEGGER_RTT_Conf.h
+.\objects\os_flag.o: .\core\ucos_ii.h
+.\objects\os_flag.o: .\SystemView\OS\Config\os_cfg_trace.h
