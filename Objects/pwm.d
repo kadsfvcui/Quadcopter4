@@ -7,7 +7,7 @@
 .\objects\pwm.o: .\Library\stm32f4xx_rcc.h
 .\objects\pwm.o: .\Library\stm32f4xx_gpio.h
 .\objects\pwm.o: .\Library\stm32f4xx_tim.h
-.\objects\pwm.o: .\Time_sched\Delay.h
+.\objects\pwm.o: .\Time_sched\dwt_time.h
 .\objects\pwm.o: .\core\ucos_ii.h
 .\objects\pwm.o: .\app\app_cfg.h
 .\objects\pwm.o: D:\Keil5\ARM\ARMCC\Bin\..\include\stdarg.h

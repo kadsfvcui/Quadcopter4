@@ -46,7 +46,6 @@
 ".\objects\final.o"
 ".\objects\pid.o"
 ".\objects\madgwick.o"
-".\objects\delay.o"
 ".\objects\dwt_time.o"
 ".\objects\tim_sched.o"
 ".\objects\os_cpu_a.o"

@@ -7,7 +7,8 @@ Quad_TypeDef quad;
 
 void Board_Init(void)
 {
-	Delay_Init();
+	DWT_Init();
+	TIM2_Init();
 	MOTOR_Init();
 //	Unlock_ALL_ESC();
 	GY86_Init();

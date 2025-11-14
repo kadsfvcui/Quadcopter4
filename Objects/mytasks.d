@@ -10,7 +10,7 @@
 .\objects\mytasks.o: .\Library\stm32f4xx_gpio.h
 .\objects\mytasks.o: Hardware\GY86_Reg.h
 .\objects\mytasks.o: Hardware\MS5611_CMD.h
-.\objects\mytasks.o: .\Time_sched\Delay.h
+.\objects\mytasks.o: .\Time_sched\dwt_time.h
 .\objects\mytasks.o: Hardware\pwm.h
 .\objects\mytasks.o: .\Library\stm32f4xx_tim.h
 .\objects\mytasks.o: .\core\ucos_ii.h
@@ -39,3 +39,4 @@
 .\objects\mytasks.o: D:\Keil5\ARM\ARMCC\Bin\..\include\stdlib.h
 .\objects\mytasks.o: D:\Keil5\ARM\ARMCC\Bin\..\include\stdbool.h
 .\objects\mytasks.o: Hardware\PID.h
+.\objects\mytasks.o: .\Time_sched\tim_sched.h

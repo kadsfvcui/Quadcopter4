@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "final.h": "c",
-        "mytasks.h": "c"
+        "mytasks.h": "c",
+        "stm32f4xx_rcc.h": "c"
     }
 }

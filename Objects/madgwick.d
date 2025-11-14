@@ -9,7 +9,7 @@
 .\objects\madgwick.o: .\Library\stm32f4xx_gpio.h
 .\objects\madgwick.o: Hardware\GY86_Reg.h
 .\objects\madgwick.o: Hardware\MS5611_CMD.h
-.\objects\madgwick.o: .\Time_sched\Delay.h
+.\objects\madgwick.o: .\Time_sched\dwt_time.h
 .\objects\madgwick.o: Hardware\usart.h
 .\objects\madgwick.o: .\Library\stm32f4xx_usart.h
 .\objects\madgwick.o: .\Library\misc.h

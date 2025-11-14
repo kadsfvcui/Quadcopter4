@@ -10,7 +10,7 @@
 .\objects\pid.o: .\Library\stm32f4xx_gpio.h
 .\objects\pid.o: Hardware\GY86_Reg.h
 .\objects\pid.o: Hardware\MS5611_CMD.h
-.\objects\pid.o: .\Time_sched\Delay.h
+.\objects\pid.o: .\Time_sched\dwt_time.h
 .\objects\pid.o: Hardware\usart.h
 .\objects\pid.o: .\Library\stm32f4xx_usart.h
 .\objects\pid.o: .\Library\misc.h

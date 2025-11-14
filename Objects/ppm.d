@@ -8,7 +8,7 @@
 .\objects\ppm.o: .\Library\stm32f4xx_gpio.h
 .\objects\ppm.o: .\Library\stm32f4xx_tim.h
 .\objects\ppm.o: .\Library\misc.h
-.\objects\ppm.o: .\Time_sched\Delay.h
+.\objects\ppm.o: .\Time_sched\dwt_time.h
 .\objects\ppm.o: .\core\ucos_ii.h
 .\objects\ppm.o: .\app\app_cfg.h
 .\objects\ppm.o: D:\Keil5\ARM\ARMCC\Bin\..\include\stdarg.h

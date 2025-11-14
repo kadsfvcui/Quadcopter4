@@ -1,11 +1,15 @@
 #include "mytasks.h"
 
 OS_STK Task_StartupStk[TASK_STK_SIZE];
-OS_STK Task_AngleStk[TASK_STK_SIZE];
+OS_STK Task_AttitudeStk[TASK_STK_SIZE];
 OS_STK Task_OuterStk[TASK_STK_SIZE];
 OS_STK Task_InnerStk[TASK_STK_SIZE];
 OS_STK Task_COMStk[TASK_STK_SIZE];
 //OS_STK Task_DisplayStk[TASK_STK_SIZE];
+
+OS_EVENT *Sem_InnerLoop;    
+OS_EVENT *Sem_OuterLoop;
+OS_EVENT *Sem_Attitude;
 
 OS_EVENT *GY86DataMutex; // GY86数据互斥信号量
 OS_EVENT *SEQDataMutex; // 四元数互斥信号量
@@ -16,8 +20,12 @@ INT8U err; // 错误码
 
 #define COM_BUF_SIZE 128
 
-void Mutex_Init(void)
+void Sem_Init(void)
 {
+    Sem_InnerLoop = OSSemCreate(0); // 创建内环控制信号量
+    Sem_OuterLoop = OSSemCreate(0); // 创建外环控制信号量
+    Sem_Attitude = OSSemCreate(0); // 创建姿态解算信号量
+
     GY86DataMutex = OSSemCreate(1); // 创建GY86互斥信号量
     SEQDataMutex = OSSemCreate(1); // 创建四元数互斥信号量
     QuadDataMutex = OSSemCreate(1); // 创建四轴数据互斥信号量
@@ -31,42 +39,42 @@ void Task_Startup(void *p_arg)
 
     Board_Init();
 
-    OSTaskCreate(Task_Angle, (void *)0, (OS_STK *)&Task_AngleStk[TASK_STK_SIZE-1], TASK_ANGLE_PRIO);
+    OSTaskCreate(Task_Attitude, (void *)0, (OS_STK *)&Task_AttitudeStk[TASK_STK_SIZE-1], TASK_ATTITUDE_PRIO);
     OSTaskCreate(Task_Outer, (void *)0, (OS_STK *)&Task_OuterStk[TASK_STK_SIZE-1], TASK_OUTER_PRIO);
     OSTaskCreate(Task_Inner, (void *)0, (OS_STK *)&Task_InnerStk[TASK_STK_SIZE-1], TASK_INNER_PRIO);
     OSTaskCreate(Task_COM, (void *)0, (OS_STK *)&Task_COMStk[TASK_STK_SIZE-1], TASK_COM_PRIO);
 //	OSTaskCreate(Task_Display, (void *)0, (OS_STK *)&Task_DisplayStk[TASK_STK_SIZE-1], TASK_DISPLAY_PRIO);
-	Mutex_Init();
+	Sem_Init();
 
     OSTaskDel(TASK_STARTUP_PRIO);
 }
 
 //姿态解算任务
-void Task_Angle(void *p_arg)
+void Task_Attitude(void *p_arg)
 {
-    INT8U Task_Angle_err;
-    OSTaskNameSet(TASK_ANGLE_PRIO, (INT8U *)"Task_Angle", &Task_Angle_err);
+    INT8U Task_Attitude_err;
+    OSTaskNameSet(TASK_ATTITUDE_PRIO, (INT8U *)"Task_Attitude", &Task_Attitude_err);
 
-    float lastTime = OSTimeGet() / 1000.0f;
+    float lastTime = DWT_GetTime();
     float currentTime, dt;
 
     while(1)
     {
-//        printf("Task_Angle Running...\n");
+        OSSemPend(Sem_Attitude, 0, &err);
+//        printf("Task_Attitude Running...\n");
 		OSSemPend(GY86DataMutex, 0, &err);
         MPU6050_GetData(&MPU6050_Data);
         HMC5883L_GetData(&HMC_Data);
 		OSSemPost(GY86DataMutex);
 
-        currentTime = OSTimeGet() / 1000.0f; // 获取系统时间并转换成s
+        currentTime = DWT_GetTime(); // 获取系统时间并转换成s
         dt = currentTime - lastTime;
         lastTime = currentTime;
 
         OSSemPend(SEQDataMutex, 0, &err);
-		MadgwickUpdate(&MPU6050_Data, &HMC_Data, &q, 0.01f);
+		MadgwickUpdate(&MPU6050_Data, &HMC_Data, &q, dt);
 //        Display();
 		OSSemPost(SEQDataMutex);
-        OSTimeDlyHMSM(0, 0, 0, 10);
     }
 }
 
@@ -81,11 +89,12 @@ void Task_Outer(void *p_arg)
     
     // 定义姿态变量
     float roll, pitch, yaw;
-    float lastTime = 0;
+    float lastTime = DWT_GetTime();
     float currentTime, dt;
     
     while(1)
     {
+        OSSemPend(Sem_OuterLoop, 0, &err);
 //        printf("Task_Outer Running...\n");
         // 获取当前姿态角
         OSSemPend(SEQDataMutex, 0, &err);
@@ -93,20 +102,14 @@ void Task_Outer(void *p_arg)
         OSSemPost(SEQDataMutex);
         
         // 计算时间间隔
-        currentTime = OSTimeGet() / 1000.0f; // 获取系统时间并转换为s
+        currentTime = DWT_GetTime(); // 获取系统时间
         dt = currentTime - lastTime;
         lastTime = currentTime;
-        
-        // 防止dt过大
-        if(dt > 0.1f) dt = 0.01f;
-        if(dt <= 0) dt = 0.01f;
         
         // 更新PID控制器
         OSSemPend(QuadDataMutex, 0, &err);
         OuterLoop_Update(&quad, roll, pitch, yaw, PPM, dt);
         OSSemPost(QuadDataMutex);
-
-        OSTimeDlyHMSM(0, 0, 0, 10);
     }
 }
 
@@ -115,31 +118,28 @@ void Task_Inner(void *p_arg)
     INT8U Task_Inner_err;
     OSTaskNameSet(TASK_INNER_PRIO, (INT8U *)"Task_Inner", &Task_Inner_err);
 
-    float lastTime = 0;
+    float lastTime = DWT_GetTime();
     float currentTime, dt;
 
     while(1)
     {
+        OSSemPend(Sem_InnerLoop, 0, &err);
 //        printf("Task_Inner Running...\n");
         // 计算时间间隔
-        currentTime = OSTimeGet() / 1000.0f; // 获取系统时间并转换为秒
+        currentTime = DWT_GetTime(); // 获取系统时间(秒)
         dt = currentTime - lastTime;
         lastTime = currentTime;
 
-        // 防止dt过大或过小
-        if(dt > 0.1f) dt = 0.01f;
-        if(dt <= 0) dt = 0.01f;
+        // 获取IMU数据
+        OSSemPend(GY86DataMutex, 0, &err);
+        MPU6050_DataTypeDef imu = MPU6050_Data;
+        OSSemPost(GY86DataMutex);
 
         // 更新PID控制器
         OSSemPend(QuadDataMutex, 0, &err);
-        OSSemPend(GY86DataMutex, 0, &err);
-        MPU6050_GetData(&MPU6050_Data);
-        InnerLoop_Update(&quad, &MPU6050_Data, dt);
-        OSSemPost(GY86DataMutex);
+        InnerLoop_Update(&quad, &imu, dt);
         QuadPID_MotorControl(&quad);
         OSSemPost(QuadDataMutex);
-
-        OSTimeDlyHMSM(0, 0, 0, 1);
     }
 }
 

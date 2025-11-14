@@ -7,4 +7,4 @@
 .\objects\oled.o: Hardware\OLED_Font.h
 .\objects\oled.o: .\Library\stm32f4xx_rcc.h
 .\objects\oled.o: .\Library\stm32f4xx_gpio.h
-.\objects\oled.o: .\Time_sched\Delay.h
+.\objects\oled.o: .\Time_sched\dwt_time.h

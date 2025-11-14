@@ -8,4 +8,4 @@
 .\objects\gy86.o: .\Library\stm32f4xx_gpio.h
 .\objects\gy86.o: Hardware\GY86_Reg.h
 .\objects\gy86.o: Hardware\MS5611_CMD.h
-.\objects\gy86.o: .\Time_sched\Delay.h
+.\objects\gy86.o: .\Time_sched\dwt_time.h
